@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+  <head>
+    <title>Lawnchair Test</title>
+    <style type="text/css" media="screen">
+      label {width: 60px; display: block; float: left;}
+    </style>
+  </head>
+  <script src="LawnchairAdaptorHelpers.js" type="text/javascript" charset="utf-8"></script>
+  <script src="DOMStorageAdaptor.js" type="text/javascript" charset="utf-8"></script>
+  <script src="Lawnchair.js" type="text/javascript" charset="utf-8"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.2/jquery.min.js" type="text/javascript" charset="utf-8"></script>
+  <body>
+    <h1>Add your pet to the list!</h1>
+    <form id="entry">
+      <p><label for="name">Name</label><input type="text" name="name" value="" id="name"/></p>
+      <p><label for="species">Species</label><input type="text" name="species" value="" id="species"/></p>
+      <p><label for="age">Age</label><input type="text" name="age" value="" id="age"/></p>
+      <p><input type="submit" name="submit" value="Add Pet" id="submit"></p>
+    </form>
+    
+    <div id="list">
+      
+    </div>
+    
+    <script type="text/javascript" charset="utf-8">
+      var pets = new Lawnchair({adaptor: "dom"});
+      //load existing pets from Lawnchair
+      function loadPets() {
+        pets.all(function(petsArray) {
+          var rowsHTML = "";
+          $.each(petsArray, function(index, pet) {
+            rowsHTML += "<p>" + pet.name + " is a " + pet.species + " and is " + pet.age + " years old. <a href='#" + pet.key + "'>Remove</a></p>";
+          });
+          $("#list").html(rowsHTML);
+        });
+      }
+      //Add event handler for storing/adding a new pet to Lawnchair/#list
+      $("#entry").submit(function() {
+        //if not all fields filled in, bail and message user
+        var pet = {};
+        pet.name = $("#name").val();
+        pet.species = $("#species").val();
+        pet.age = $("#age").val();
+        
+        if(!(pet.name && pet.species && pet.age)) {
+          alert("Dude, you need to fill in all the fields!");
+        }
+        else {
+          pets.save(pet, function() {
+            $("#entry").find(":input").each(function(index, input) {
+              input.val("");
+            });
+            loadPets();
+          });
+        }
+        return false;
+      });
+      
+      //Add event handler for deleting an existing pet
+      $("#list a").live("click", function() {
+        var key = $(this).attr("href").split("#")[1];
+        pets.remove(key);
+        setTimeout(loadPets, 200);
+      });
+      
+      loadPets();
+      $("#name").focus();
+    </script>
+  </body>
+</html>
